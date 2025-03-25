@@ -20,6 +20,7 @@ install_microxrce() {
     
     cd $SWARMZ4_PATH
     git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+    sudo apt install cmake -y
     cd Micro-XRCE-DDS-Agent || { echo "Failed to access Micro-XRCE-DDS-Agent directory"; exit 1; }
     mkdir build
     cd build || { echo "Failed to access build directory"; exit 1; }
