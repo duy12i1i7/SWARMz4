@@ -439,8 +439,8 @@
       <axis>
         <xyz>1 0 0</xyz>
         <limit>
-          <effort>100</effort>
-          <velocity>100</velocity>
+          <effort>150</effort>
+          <velocity>150</velocity>
         </limit>
         <dynamics>
           <friction>0.05</friction>
@@ -470,8 +470,8 @@
       <axis>
         <xyz>1 0 0</xyz>
         <limit>
-          <effort>100</effort>
-          <velocity>100</velocity>
+          <effort>150</effort>
+          <velocity>150</velocity>
         </limit>
         <dynamics>
           <friction>0.05</friction>
