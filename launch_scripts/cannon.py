@@ -63,7 +63,7 @@ def publish_command(model, j, data_value):
         print(f"Lỗi khi gửi lệnh cho topic {topic}")
 
 
-def adjust_axis(get_current, model, j, target_value, axis_name, tolerance=0.5, max_retries=10):  # Giảm tolerance và thêm max_retries
+def adjust_axis(get_current, model, j, speed, target_value, axis_name, tolerance=0.5, max_retries=10):  # Giảm tolerance và thêm max_retries
     print(f"--- Điều chỉnh {axis_name} đến mục tiêu: {target_value} ---")
     retry_count = 0
     
@@ -83,7 +83,7 @@ def adjust_axis(get_current, model, j, target_value, axis_name, tolerance=0.5, m
             print(f"{axis_name} đã đạt mục tiêu.")
             return True  # Thêm return value
         else:    
-            data = 1.0 if diff > 0 else -1.0
+            data = speed if diff > 0 else -speed
             publish_command(model, j, data)
             time.sleep(0.1)  # Thêm delay để tránh quá tải
         
@@ -106,8 +106,8 @@ def cleanup(model):
     print("Đã dừng tất cả động cơ")
 
 def main():
-    if len(sys.argv) != 4:
-        print("Usage: python3 cannon.py [warship_name] [target_yaw] [target_pitch]")
+    if len(sys.argv) != 5:
+        print("Usage: python3 cannon.py [warship_name] [target_yaw] [target_pitch] [rotation_speed]")
         sys.exit(1)
     elif (float(sys.argv[2]) > 1.5 or float(sys.argv[2]) < -1.57):
     	print("out of yaw degree")
@@ -115,12 +115,16 @@ def main():
     elif (float(sys.argv[3]) < 0 or float(sys.argv[3]) > 3.14):
     	print("out of pitch degree")
     	sys.exit(1)
+    elif (float(sys.argv[4]) < 0 or float(sys.argv[4]) > 1):
+    	print("out of rotation speed")
+    	sys.exit(1)
     try:
         target_warship = sys.argv[1]
         target_yaw = float(sys.argv[2])
         target_pitch = float(sys.argv[3])
-        success_pitch = adjust_axis(get_pitch, target_warship, "j1", target_pitch, "Pitch")
-        success_yaw = adjust_axis(get_yaw, target_warship, "j2", target_yaw, "Yaw")
+        cn_speed = float(sys.argv[4])
+        success_pitch = adjust_axis(get_pitch, target_warship, "j1", cn_speed, target_pitch, "Pitch")
+        success_yaw = adjust_axis(get_yaw, target_warship, "j2", cn_speed, target_yaw, "Yaw")
 
         if success_pitch and success_yaw:
                 print("done")
