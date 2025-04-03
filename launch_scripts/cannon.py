@@ -5,22 +5,6 @@ import time
 import math
 import re
 
-def transform_warship(target_warship):
-    """
-    Chuyển đổi từ chuỗi dạng "warship_1" sang "warship1_rocket1".
-    """
-    # Mẫu: bắt đầu bằng "warship", sau đó dấu gạch dưới và số
-    pattern = r"^(warship)_(\d+)$"
-    match = re.match(pattern, target_warship)
-    if match:
-        prefix = match.group(1)      # "warship"
-        number = match.group(2)      # "1" (hoặc số khác)
-        # Nối lại thành "warship" + number + "_rocket" + number
-        return f"{prefix}{number}_rocket{number}"
-    else:
-        # Nếu không khớp, trả về chuỗi ban đầu
-        return target_warship
-
 
 def get_value_from_model(command, target_index):
     """
@@ -79,34 +63,34 @@ def publish_command(model, j, data_value):
         print(f"Lỗi khi gửi lệnh cho topic {topic}")
 
 
-def adjust_axis(get_current, model, j, target_value, axis_name, tolerance=0.5):
-    """
-    Điều chỉnh giá trị của một trục cho đến khi đạt được giá trị mục tiêu.
-    - get_current: hàm lấy giá trị hiện tại (ví dụ get_yaw, get_pitch)
-    - topic: topic cần publish lệnh ("/gr" cho yaw, "/gun" cho pitch)
-    - target_value: giá trị mục tiêu cho trục đó
-    - axis_name: tên trục (cho mục đích hiển thị)
-    """
+def adjust_axis(get_current, model, j, target_value, axis_name, tolerance=0.5, max_retries=10):  # Giảm tolerance và thêm max_retries
     print(f"--- Điều chỉnh {axis_name} đến mục tiêu: {target_value} ---")
-    while True:
+    retry_count = 0
+    
+    while retry_count < max_retries:
         current_value = get_current(model)
         if current_value is None:
             print(f"Không lấy được giá trị hiện tại của {axis_name}. Thử lại")
-
+            retry_count += 1
+            time.sleep(0.5)  # Thêm delay
             continue
 
         diff = target_value - current_value
         print(f"{axis_name} hiện tại = {current_value:.6f} | Hiệu lệch = {diff:.6f}")
 
         if abs(diff) < tolerance:
-            # Nếu đã đạt mục tiêu, gửi lệnh dừng (data = 0) và thoát vòng lặp
             publish_command(model, j, 0.0)
             print(f"{axis_name} đã đạt mục tiêu.")
-            break
-        else:
+            return True  # Thêm return value
+        else:    
             data = 1.0 if diff > 0 else -1.0
             publish_command(model, j, data)
+            time.sleep(0.1)  # Thêm delay để tránh quá tải
+        
+            retry_count += 1
 
+    print(f"Không thể đạt mục tiêu {axis_name} sau {max_retries} lần thử")
+    return False  # Thêm return value
 
 def yaw_pitch_to_vector(yaw, pitch):
     # Công thức chuyển đổi cơ bản từ yaw, pitch sang vector đơn vị
@@ -115,38 +99,43 @@ def yaw_pitch_to_vector(yaw, pitch):
     vz = math.sin(pitch)
     return [vx, vy, vz]
 
-
+def cleanup(model):
+    """Dừng tất cả chuyển động"""
+    publish_command(model, "j1", 0.0)
+    publish_command(model, "j2", 0.0)
+    print("Đã dừng tất cả động cơ")
 
 def main():
-    if len(sys.argv) != 5:
-        print("Usage: python3 cannon.py [warship_name] [target_yaw] [target_pitch] [max_speed_rocket]")
+    if len(sys.argv) != 4:
+        print("Usage: python3 cannon.py [warship_name] [target_yaw] [target_pitch]")
         sys.exit(1)
-    else if (float(sys.argv[2]) > 1.5 or float(sys.argv[2]) < -1.57):
+    elif (float(sys.argv[2]) > 1.5 or float(sys.argv[2]) < -1.57):
     	print("out of yaw degree")
     	sys.exit(1)
-    else if (float(sys.argv[3]) < 0 or float(sys.argv[3]) > 3.14):
+    elif (float(sys.argv[3]) < 0 or float(sys.argv[3]) > 3.14):
     	print("out of pitch degree")
-	sys.exit(1)
+    	sys.exit(1)
     try:
         target_warship = sys.argv[1]
         target_yaw = float(sys.argv[2])
         target_pitch = float(sys.argv[3])
-        maxSpd = float(sys.argv[4])
+        success_pitch = adjust_axis(get_pitch, target_warship, "j1", target_pitch, "Pitch")
+        success_yaw = adjust_axis(get_yaw, target_warship, "j2", target_yaw, "Yaw")
+
+        if success_pitch and success_yaw:
+                print("done")
+                sys.exit(0)  # Thoát với mã thành công
+        else:
+                print("failed")
+                sys.exit(2)  # Thoát với mã lỗi
+
     except ValueError:
         print("Vui lòng nhập 4 giá trị số cho"+ValueError)
         sys.exit(1)
 
-	
-    print(f"Target: yaw = {target_yaw}, pitch = {target_pitch}")
-    publish_command(target_warship,"j2",0)
-    publish_command(target_warship,"j1",0)
-    # Điều chỉnh yaw (trục gr) trước
-        # Sau khi yaw đạt mục tiêu, điều chỉnh pitch (trục gun)
-    adjust_axis(get_pitch, target_warship, "j1", target_pitch, "Pitch")
-    adjust_axis(get_yaw, target_warship, "j2", target_yaw, "Yaw")
-
-
-
+    finally:
+        cleanup(target_warship)
+    
 
 if __name__ == '__main__':
     main()
