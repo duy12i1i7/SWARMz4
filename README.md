@@ -70,7 +70,7 @@ To run a game, you need to start the Gazebo simulation with the appropriate numb
    - TARGET_YAW: Represents the gun muzzle's vertical rotation angle, spanning from –π/2 to π/2.
    - TARGET_PITCH: the rotation angle of the gun BASE, ranging from 0 to 2π.
   
-   Or use this topic(maybe get some struggle with this):
+   Or use this topic:
    ```bash
    source ros2_ws/install/setup.bash
    ros2 topic pub /flag_ship_1/cannon_control cannon_msgs/msg/CannonControl "{target_yaw: 0.5, target_pitch: 1.57}"
