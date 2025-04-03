@@ -173,6 +173,7 @@ cd $SWARMZ4_PATH/ros2_ws || { echo "ROS 2 workspace directory not found!"; exit 
 
 # ROS 2 Bridges and Launch Files
 echo "Starting ROS 2 bridges and launch files..."
+ros2 launch cannon_controller cannon_controller.launch.py &
 ros2 run ros_gz_bridge parameter_bridge /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock &
 CLOCK_BRIDGE_PID=$!
 ros2 launch px4_gz_bridge px4_laser_gz_bridge.launch.py nb_of_drones:=$TOTAL_DRONES &
