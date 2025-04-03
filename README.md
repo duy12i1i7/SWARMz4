@@ -63,19 +63,18 @@ To run a game, you need to start the Gazebo simulation with the appropriate numb
     ```bash
     cd SWARMz4/
     source ros2_ws/install/setup.bash
-    python3 launch_scripts/cannon.py [SOURCE] [TARGET_YAW] [TARGET_PITCH] [MAX_SPEED_ROCKET] 
+    python3 launch_scripts/cannon.py [SOURCE] [TARGET_YAW] [TARGET_PITCH]
     ```
     With:
    - SOURCE: Represents the warship
    - TARGET_YAW: Represents the gun muzzle's vertical rotation angle, spanning from –π/2 to π/2.
    - TARGET_PITCH: the rotation angle of the gun BASE, ranging from 0 to 2π.
-   - MAX_SPEED_ROCKET: is the speed of the rocket on warship
   
    Or use this topic(maybe get some struggle with this):
    ```bash
    source ros2_ws/install/setup.bash
-   ros2 topic pub /fire cannon_control/msg/FireCommand "{source: 'flag_ship_1', target_yaw: 1.57, target_pitch: 0.5, max_speed_rocket: 30.0}"
-   ```
+   ros2 topic pub /flag_ship_1/cannon_control cannon_msgs/msg/CannonControl "{target_yaw: 0.5, target_pitch: 1.57}"
+    ```
 
 [![Rotate and Fire](https://img.youtube.com/vi/_z1kW_oepP8/0.jpg)](https://www.youtube.com/watch?v=_z1kW_oepP8)  
 
