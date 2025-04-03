@@ -1,2 +1,3 @@
 float32 target_yaw
 float32 target_pitch
+float32 cannon_speed

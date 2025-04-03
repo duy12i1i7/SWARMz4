@@ -30,7 +30,7 @@ class CannonController(Node):
     
     def create_callback(self, source):
         def callback(msg):
-            self.get_logger().info(f"Command for {source}: YAW={msg.target_yaw}, PITCH={msg.target_pitch}")
+            self.get_logger().info(f"Command for {source}: YAW={msg.target_yaw}, PITCH={msg.target_pitch}, SPEED={msg.cannon_speed}")
             
             # Execute the cannon script
             try:
@@ -40,7 +40,8 @@ class CannonController(Node):
                         self.cannon_script,
                         source,
                         str(msg.target_yaw),
-                        str(msg.target_pitch)
+                        str(msg.target_pitch),
+                        str(msg.cannon_speed)
                     ],
                     cwd=self.working_dir,
                     check=True
